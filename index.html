@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Portland Trip</title>
+<meta name="theme-color" content="#1f3a34" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0f1714" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Portland">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<style>
+:root{
+  --bg:#f4f1ea; --card:#fffdf8; --ink:#1b211f; --muted:#5f6a65; --line:#e3ddd0;
+  --accent:#1f5a4c; --accent-ink:#ffffff; --accent-soft:#dcebe5;
+  --gold:#b0832e; --gold-soft:#f5ead2; --now:#c0502e;
+  --walk:#2f6b4f; --max:#2c5aa0; --ride:#7a4a9a; --bus:#a0602c;
+  --radius:16px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#0f1714; --card:#17221e; --ink:#eaeee9; --muted:#9aa8a1; --line:#26332e;
+    --accent:#6fbfa6; --accent-ink:#0f1714; --accent-soft:#1f3a33;
+    --gold:#e0b45e; --gold-soft:#33291a; --now:#ff8a62;
+    --walk:#7fcca3; --max:#8ab4f2; --ride:#c9a0e8; --bus:#e8ad73;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));}
+a{color:var(--accent)}
+header{position:sticky;top:0;z-index:5;background:var(--bg);
+  padding:calc(env(safe-area-inset-top) + 10px) 16px 0;border-bottom:1px solid var(--line)}
+.title-row{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+h1{font:700 26px/1.1 ui-serif,"New York",Georgia,serif;margin:0;letter-spacing:-.01em}
+.sub{color:var(--muted);font-size:13px}
+.days{display:flex;gap:8px;overflow-x:auto;padding:12px 0;scrollbar-width:none;scroll-snap-type:x proximity}
+.days::-webkit-scrollbar{display:none}
+.day-btn{flex:0 0 auto;scroll-snap-align:start;border:1px solid var(--line);background:var(--card);color:var(--ink);
+  border-radius:14px;padding:8px 12px;text-align:center;min-width:58px;font:inherit;cursor:pointer}
+.day-btn .dow{display:block;font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.day-btn .dnum{display:block;font-size:20px;font-weight:700}
+.day-btn.active{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.day-btn.active .dow{color:inherit;opacity:.85}
+.day-btn.today:not(.active){border-color:var(--now)}
+main{max-width:760px;margin:0 auto;padding:16px}
+.view{display:none}.view.active{display:block}
+.day-head h2{font:700 22px/1.2 ui-serif,"New York",Georgia,serif;margin:4px 0 6px}
+.day-head p{margin:0 0 14px;color:var(--muted)}
+.note{background:var(--gold-soft);border-left:4px solid var(--gold);border-radius:10px;padding:10px 12px;margin:0 0 14px;font-size:14px}
+.timeline{list-style:none;margin:0;padding:0;position:relative}
+.timeline:before{content:"";position:absolute;left:66px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.ev{display:grid;grid-template-columns:58px 1fr;gap:16px;margin-bottom:12px;position:relative}
+.ev .t{font-weight:700;font-size:13px;text-align:right;padding-top:12px;padding-right:8px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ev .dot{position:absolute;left:61px;top:15px;width:12px;height:12px;border-radius:50%;background:var(--card);border:2px solid var(--accent)}
+.ev.key .dot{background:var(--gold);border-color:var(--gold)}
+.ev.now .dot{background:var(--now);border-color:var(--now);box-shadow:0 0 0 5px color-mix(in srgb,var(--now) 25%,transparent)}
+.ev.past{opacity:.55}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-left:8px}
+.ev.key .card{border-color:var(--gold)}
+.ev.now .card{border-color:var(--now)}
+.what{font-weight:650}
+.tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;
+  border-radius:6px;padding:2px 6px;margin-right:6px;vertical-align:1px}
+.tag.now{background:var(--now);color:#fff}
+.how{margin-top:6px;font-size:14px;color:var(--muted);display:flex;gap:8px;align-items:flex-start}
+.mode{flex:0 0 auto;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;border-radius:6px;padding:2px 6px;border:1px solid currentColor}
+.mode.walk{color:var(--walk)}.mode.max{color:var(--max)}.mode.ride{color:var(--ride)}.mode.bus{color:var(--bus)}
+.links{margin-top:8px;display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;text-decoration:none;
+  background:var(--accent-soft);color:var(--accent);border-radius:999px;padding:5px 10px}
+.extra{margin-top:16px}
+.extra h3{font-size:15px;margin:0 0 6px}
+.extra p{margin:0 0 10px;font-size:14px}
+.section-title{font:700 22px/1.2 ui-serif,"New York",Georgia,serif;margin:4px 0 12px}
+.place{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+.place .name{font-weight:650}
+.place .addr{color:var(--muted);font-size:14px}
+.place .dist{font-size:13px;margin-top:4px}
+.info{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;font-size:15px}
+.info h3{margin:0 0 6px;font-size:15px}
+.check{list-style:none;padding:0;margin:0}
+.check li{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:8px}
+.check label{display:flex;gap:12px;align-items:center;padding:12px 14px;cursor:pointer}
+.check input{width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto}
+.check input:checked + span{text-decoration:line-through;color:var(--muted)}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;display:grid;grid-template-columns:repeat(4,1fr);
+  background:color-mix(in srgb,var(--card) 92%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{background:none;border:0;color:var(--muted);font:600 11px/1 inherit;padding:9px 0 8px;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button.active{color:var(--accent)}
+.hide-days .days{display:none}
+@media (min-width:700px){
+  main{padding:24px}
+  .timeline:before{left:86px}
+  .ev{grid-template-columns:78px 1fr}
+  .ev .dot{left:81px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="title-row">
+    <h1>Portland</h1>
+    <span class="sub" id="clock"></span>
+  </div>
+  <div class="sub">CANVAS 2026 · Oct 30 – Nov 5 · Jupiter Hotel</div>
+  <div class="days" id="days"></div>
+</header>
+
+<main>
+  <section class="view active" id="view-day"></section>
+  <section class="view" id="view-places"></section>
+  <section class="view" id="view-info"></section>
+  <section class="view" id="view-todo"></section>
+</main>
+
+<nav class="tabs" id="tabs">
+  <button data-view="day" class="active" aria-label="Schedule">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Schedule</button>
+  <button data-view="places" aria-label="Places">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>Places</button>
+  <button data-view="info" aria-label="Getting around">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="15" rx="3"/><path d="M5 11h14M8 21l2-3M16 21l-2-3"/><circle cx="9" cy="14.5" r=".5"/><circle cx="15" cy="14.5" r=".5"/></svg>Transit</button>
+  <button data-view="todo" aria-label="Checklist">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Checklist</button>
+</nav>
+
+<script>
+/* ---------- Places (tap to open in Maps) ---------- */
+const P = {
+  hotel:   {name:"Jupiter Hotel", addr:"800 E Burnside St, Portland, OR 97214", dist:"Home base"},
+  occ:     {name:"Oregon Convention Center", addr:"777 NE Martin Luther King Jr Blvd, Portland, OR 97232", dist:"~13 min walk"},
+  rosary:  {name:"Holy Rosary Church", addr:"375 NE Clackamas St, Portland, OR 97232", dist:"~15 min walk", tel:"5032353163", web:"https://holyrosarypdx.org"},
+  rcenter: {name:"Rosary Center", addr:"1331 NE 3rd Ave, Portland, OR 97232", dist:"~15 min walk", web:"https://rosarycenter.org"},
+  market:  {name:"Portland Saturday Market", addr:"2 SW Naito Pkwy, Portland, OR 97204", dist:"MAX ~10 min · Sat 10–5"},
+  lonefir: {name:"Lone Fir Cemetery", addr:"SE 26th Ave & SE Stark St, Portland, OR 97214", dist:"~25 min walk / rideshare ~8 min · dawn to dusk"},
+  grotto:  {name:"The Grotto", addr:"8840 NE Skidmore St, Portland, OR 97220", dist:"Rideshare ~15–20 min · entrance NE 85th & Sandy", tel:"5032547371", web:"https://thegrotto.org"},
+  george:  {name:"St. George Antiochian Orthodox", addr:"2101 NE 162nd Ave, Portland, OR 97230", dist:"Rideshare ~25 min · call ahead for bookstore hours"},
+  ethos:   {name:"Ethos Bookstore (Holy Trinity)", addr:"3131 NE Glisan St, Portland, OR 97232", dist:"Backup bookstore · Tue 11 AM–2 PM"},
+  powells: {name:"Powell's City of Books", addr:"1005 W Burnside St, Portland, OR 97209", dist:"MAX/bus ~15 min"},
+  pdx:     {name:"Portland Airport (PDX)", addr:"7000 NE Airport Way, Portland, OR 97218", dist:"MAX Red Line ~30 min"},
+  ccstn:   {name:"Convention Center MAX station", addr:"Convention Center MAX Station, Portland, OR", dist:"Blue, Green & Red lines"}
+};
+const maps = k => "https://maps.apple.com/?q=" + encodeURIComponent(P[k].name) + "&address=" + encodeURIComponent(P[k].addr);
+const dir  = (k, mode) => "https://maps.apple.com/?daddr=" + encodeURIComponent(P[k].addr) + "&dirflg=" + (mode||"w");
+
+/* ---------- Schedule ---------- */
+// mode: walk | max | ride | bus ; key: highlight ; go: place key ; dirflg: w (walk) r (transit) d (drive)
+const DAYS = [
+ {date:"2026-10-30", dow:"Fri", title:"Arrive", lead:"Land around 9:00 PM and go straight to the hotel.",
+  ev:[
+   {t:"21:00", what:"Land at PDX, collect bags"},
+   {t:"21:30", what:"PDX → Jupiter Hotel", mode:"ride", how:"Rideshare/taxi, ~20 min. Follow the rideshare pickup signs.", go:"hotel", dirflg:"d"},
+   {t:"22:00", what:"Check in, sleep", go:"hotel"}
+  ],
+  extra:[["Backup by train","MAX Red Line from PDX (station by baggage claim) to Convention Center, ~30 min, $2.80. Then walk south on NE MLK Jr Blvd to E Burnside, ~13 min. Last train leaves PDX around 12:30 AM."]]
+ },
+ {date:"2026-10-31", dow:"Sat", title:"Mass, the friars, market, workshop", lead:"Everything until 1:45 PM is within a 15-minute walk. One MAX round trip covers the market.",
+  ev:[
+   {t:"07:10", what:"Leave hotel", mode:"walk", how:"North on NE MLK Jr Blvd / NE Grand to NE Clackamas St, ~15 min", go:"rosary", dirflg:"w"},
+   {t:"07:30", what:"Rosary, Holy Rosary", go:"rosary"},
+   {t:"08:00", what:"Mass, Holy Rosary", key:true, go:"rosary"},
+   {t:"09:00", what:"Breakfast nearby; badge pickup at the Convention Center if open", mode:"walk", how:"~5 min", go:"occ", dirflg:"w"},
+   {t:"09:45", what:"Free time — rest, poster prep, or shop the market early (opens 10)"},
+   {t:"12:00", what:"Lunch with the friars · Rosary Confraternity + Angelic Warfare enrollment · rosary devotion talk", key:true, how:"Meet at Holy Rosary or the Rosary Center, per their reply", go:"rcenter", dirflg:"w"},
+   {t:"13:45", what:"Head to the market", mode:"max", how:"Walk to Convention Center station, ride Blue or Red west to Skidmore Fountain, ~10 min", go:"market", dirflg:"r"},
+   {t:"14:00", what:"Portland Saturday Market — keepsakes", go:"market"},
+   {t:"14:35", what:"Back to the workshop", mode:"max", how:"MAX east from Skidmore Fountain to Convention Center, ~10 min", go:"occ", dirflg:"r"},
+   {t:"15:00", end:"17:00", what:"Bayesian workshop", key:true, go:"occ"},
+   {t:"17:15", what:"Dinner; optional All Saints' Eve party at Holy Rosary (ask the friars for the time)", mode:"walk", how:"Back to hotel ~13 min", go:"hotel", dirflg:"w"}
+  ],
+  note:"The market stop is tight (35 min). If lunch ends early, shop in the 9:45–11:45 free block instead. A $5.60 day pass (or the daily fare cap) covers today's rides."
+ },
+ {date:"2026-11-01", dow:"Sun", title:"All Saints' Day · workshop", lead:"Clocks fall back overnight — the 6:40 AM start feels like 7:40. All on foot today.",
+  ev:[
+   {t:"06:40", what:"Leave hotel", mode:"walk", how:"To Holy Rosary, ~15 min", go:"rosary", dirflg:"w"},
+   {t:"07:00", what:"Mass, Holy Rosary", key:true, go:"rosary"},
+   {t:"08:00", what:"Breakfast near the Convention Center", mode:"walk", how:"~5 min", go:"occ", dirflg:"w"},
+   {t:"09:00", end:"16:00", what:"Bayesian workshop, day 2", key:true, go:"occ"},
+   {t:"16:15", what:"Back to hotel, rest", mode:"walk", how:"~13 min", go:"hotel", dirflg:"w"},
+   {t:"18:00", what:"Dinner near the hotel (Hey Love is on site; lots on E Burnside), early night"}
+  ]
+ },
+ {date:"2026-11-02", dow:"Mon", title:"All Souls' Day", lead:"Morning sessions, noon Mass two blocks from the venue, then Lone Fir Cemetery. Many burials from Portland's old St. Mary's Catholic cemetery were moved to Lone Fir.",
+  ev:[
+   {t:"07:40", what:"Leave hotel", mode:"walk", how:"To the Convention Center, ~13 min", go:"occ", dirflg:"w"},
+   {t:"08:00", end:"11:40", what:"Conference sessions", go:"occ"},
+   {t:"11:40", what:"To Holy Rosary (confessions 11–12 if wanted)", mode:"walk", how:"~5 min", go:"rosary", dirflg:"w"},
+   {t:"12:00", what:"All Souls' Mass, Holy Rosary", key:true, go:"rosary"},
+   {t:"12:45", what:"Lunch near Holy Rosary / Lloyd District"},
+   {t:"13:45", what:"To Lone Fir Cemetery", mode:"ride", how:"Rideshare ~10 min. Car entrance on SE 26th Ave between Stark and Morrison", go:"lonefir", dirflg:"d"},
+   {t:"14:00", end:"16:00", what:"Pray for the dead at Lone Fir", key:true, go:"lonefir"},
+   {t:"16:00", what:"Back to the hotel before dusk (~5 PM)", mode:"walk", how:"West along E Burnside ~25 min, or rideshare ~8 min", go:"hotel", dirflg:"w"},
+   {t:"18:00", what:"Quiet dinner, rest"}
+  ],
+  extra:[["Transit backup","TriMet bus 15 runs along SE Belmont/Morrison by the cemetery's south side. Check the TriMet trip planner for stops and times."]]
+ },
+ {date:"2026-11-03", dow:"Tue", title:"The Grotto & St. George", lead:"Leave the conference at 11:00 sharp — book the rideshare at 10:55 so it's waiting.",
+  ev:[
+   {t:"07:40", what:"Leave hotel", mode:"walk", how:"To the Convention Center, ~13 min", go:"occ", dirflg:"w"},
+   {t:"08:00", end:"11:00", what:"Conference sessions", go:"occ"},
+   {t:"11:00", what:"To The Grotto (entrance NE 85th & Sandy Blvd)", mode:"ride", how:"Rideshare ~15–20 min", go:"grotto", dirflg:"d"},
+   {t:"11:30", what:"Rosary, Chapel of Mary", go:"grotto"},
+   {t:"12:00", what:"Mass, Chapel of Mary", key:true, go:"grotto"},
+   {t:"12:45", what:"Grotto plaza, stations path, gift shop (upper gardens closed)", go:"grotto"},
+   {t:"13:45", what:"To St. George Antiochian Orthodox", mode:"ride", how:"Rideshare ~15 min", go:"george", dirflg:"d"},
+   {t:"14:00", end:"15:00", what:"Bookstore — call ahead to confirm it's open", key:true, go:"george"},
+   {t:"15:00", what:"Late lunch, then back to the hotel", mode:"ride", how:"Rideshare ~25 min", go:"hotel", dirflg:"d"},
+   {t:"18:00", what:"Poster prep: check print, pins/Velcro, rehearse 30-sec and 3-min pitches"}
+  ],
+  note:"No food service at the Grotto — eat a solid breakfast or bring a snack.",
+  extra:[
+   ["Transit backup for the return","Walk ~1 mile south to E 162nd Ave MAX station, Blue Line west to Convention Center (~35 min), then walk ~13 min."],
+   ["If St. George's bookstore is closed","Ethos Bookstore at Holy Trinity Greek Orthodox, 3131 NE Glisan St, is open Tuesdays 11 AM–2 PM. Go straight from the Grotto at 1:15 PM, ~15 min by rideshare."]
+  ]
+ },
+ {date:"2026-11-04", dow:"Wed", title:"Mass, keepsakes, poster", lead:"Back at the hotel by 11:45 AM for a calm hour before the 1:00 PM poster session.",
+  ev:[
+   {t:"06:40", what:"Leave hotel", mode:"walk", how:"To Holy Rosary, ~15 min", go:"rosary", dirflg:"w"},
+   {t:"07:00", what:"Mass, Holy Rosary", key:true, go:"rosary"},
+   {t:"07:45", what:"Breakfast"},
+   {t:"09:00", what:"Downtown for keepsakes", mode:"max", how:"From Convention Center west to Old Town / Pioneer Square, ~10 min", go:"powells", dirflg:"r"},
+   {t:"09:30", end:"11:15", what:"Shop: Powell's City of Books and around Pioneer Courthouse Square", go:"powells"},
+   {t:"11:15", what:"Back to hotel", mode:"bus", how:"Bus 20 east along Burnside, ~15 min; or rideshare", go:"hotel", dirflg:"r"},
+   {t:"12:00", what:"Lunch, change, grab poster tube", go:"hotel"},
+   {t:"12:35", what:"To the poster hall", mode:"walk", how:"~13 min (rideshare if raining, to keep the poster dry)", go:"occ", dirflg:"w"},
+   {t:"13:00", end:"16:00", what:"Poster presentation", key:true, go:"occ"},
+   {t:"16:00", what:"Take down poster"},
+   {t:"18:00", what:"Celebration dinner, pack for tomorrow"}
+  ]
+ },
+ {date:"2026-11-05", dow:"Thu", title:"Fly home · 10:45 AM", lead:"Straight to the airport on MAX; breakfast at PDX after security.",
+  ev:[
+   {t:"06:45", what:"Check out, leave hotel with luggage", mode:"walk", how:"North on NE MLK Jr Blvd to Convention Center MAX station, ~13 min", go:"ccstn", dirflg:"w"},
+   {t:"07:05", what:"MAX Red Line to PDX", mode:"max", how:"~30 min, $2.80 — tap phone or card", go:"pdx", dirflg:"r"},
+   {t:"07:35", what:"Arrive PDX: check bags, security, breakfast", go:"pdx"},
+   {t:"10:45", what:"Flight departs", key:true}
+  ],
+  note:"Latest safe departure: leave the hotel by 7:45 AM on MAX. Red Line trains run every 15–30 minutes."
+ }
+];
+
+const CHECK = [
+ "Confirm Saturday lunch time and place with the friars",
+ "Confirm the Angelic Warfare cord/medal will be ready Saturday",
+ "Call St. George to confirm bookstore hours (Tue Nov 3)",
+ "CANVAS app: badge pickup hours, workshop room, poster board size, setup window",
+ "Check Holy Rosary's All Souls' Day schedule (noon Mass Nov 2)",
+ "Install Uber/Lyft; set up contactless pay in Wallet for TriMet",
+ "Pack: poster tube, pins/Velcro, QR code to figures",
+ "Pack: rain jacket and layers (~50°F, wet)",
+ "Pack: rosary, some cash/checkbook for parish bookstores, charger"
+];
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const fmt = hm => { let [h,m]=hm.split(":").map(Number); const ap=h>=12?"PM":"AM"; h=h%12||12; return h+":"+String(m).padStart(2,"0")+" "+ap; };
+const modeLabel = {walk:"Walk", max:"MAX", ride:"Rideshare", bus:"Bus"};
+
+// Current time in Portland
+function pdxNow(){
+  const parts = new Intl.DateTimeFormat("en-CA",{timeZone:"America/Los_Angeles",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hour12:false}).formatToParts(new Date());
+  const g = t => parts.find(p=>p.type===t).value;
+  return {date:`${g("year")}-${g("month")}-${g("day")}`, mins:(+g("hour")%24)*60 + +g("minute"),
+          label:new Intl.DateTimeFormat("en-US",{timeZone:"America/Los_Angeles",weekday:"short",hour:"numeric",minute:"2-digit"}).format(new Date())};
+}
+const toMin = hm => { const [h,m]=hm.split(":").map(Number); return h*60+m; };
+
+let current = 0;
+
+function renderDays(){
+  const now = pdxNow();
+  $("#days").innerHTML = DAYS.map((d,i)=>{
+    const n = +d.date.slice(8);
+    return `<button class="day-btn ${i===current?"active":""} ${d.date===now.date?"today":""}" data-i="${i}">
+      <span class="dow">${d.dow}</span><span class="dnum">${n}</span></button>`;
+  }).join("");
+}
+
+function renderDay(scroll){
+  const d = DAYS[current], now = pdxNow(), isToday = d.date===now.date;
+  // index of the current/next event
+  let nowIdx = -1;
+  if(isToday){
+    d.ev.forEach((e,i)=>{ if(toMin(e.t) <= now.mins) nowIdx = i; });
+    if(nowIdx>=0){ const e=d.ev[nowIdx]; const end = e.end?toMin(e.end):(d.ev[nowIdx+1]?toMin(d.ev[nowIdx+1].t):toMin(e.t)+60); if(now.mins>=end && d.ev[nowIdx+1]) nowIdx++; }
+    else nowIdx = 0;
+  }
+  const evHtml = d.ev.map((e,i)=>{
+    const cls = ["ev"]; if(e.key) cls.push("key");
+    if(isToday && i===nowIdx) cls.push("now"); else if(isToday && i<nowIdx) cls.push("past");
+    const time = fmt(e.t).replace(" ","<br>");
+    const how = e.mode||e.how ? `<div class="how">${e.mode?`<span class="mode ${e.mode}">${modeLabel[e.mode]}</span>`:""}<span>${esc(e.how||"")}</span></div>` : "";
+    let links = "";
+    if(e.go){
+      const p = P[e.go];
+      links = `<div class="links"><a class="chip" href="${dir(e.go,e.dirflg)}">Directions</a><a class="chip" href="${maps(e.go)}">${esc(p.name)}</a>${p.tel?`<a class="chip" href="tel:${p.tel}">Call</a>`:""}</div>`;
+    }
+    const range = e.end ? ` <span class="sub">until ${fmt(e.end)}</span>` : "";
+    return `<li class="${cls.join(" ")}" ${isToday && i===nowIdx?'id="now-ev"':""}><div class="t">${time}</div><span class="dot"></span>
+      <div class="card"><div class="what">${isToday&&i===nowIdx?'<span class="tag now">Now</span>':""}${esc(e.what)}${range}</div>${how}${links}</div></li>`;
+  }).join("");
+  const extra = (d.extra||[]).map(([h,p])=>`<h3>${esc(h)}</h3><p>${esc(p)}</p>`).join("");
+  $("#view-day").innerHTML = `
+    <div class="day-head"><div class="sub">${new Date(d.date+"T12:00:00").toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric"})}</div>
+    <h2>${esc(d.title)}</h2><p>${esc(d.lead)}</p></div>
+    ${d.note?`<div class="note">${esc(d.note)}</div>`:""}
+    <ol class="timeline">${evHtml}</ol>
+    ${extra?`<div class="extra">${extra}</div>`:""}`;
+  if(isToday && scroll){ const el=$("#now-ev"); if(el) setTimeout(()=>el.scrollIntoView({block:"center",behavior:"smooth"}),150); }
+}
+
+function renderPlaces(){
+  $("#view-places").innerHTML = `<h2 class="section-title">Places</h2>` + Object.keys(P).filter(k=>k!=="ccstn").map(k=>{
+    const p=P[k];
+    return `<div class="place"><div class="name">${esc(p.name)}</div><div class="addr">${esc(p.addr)}</div><div class="dist">${esc(p.dist)}</div>
+      <div class="links"><a class="chip" href="${maps(k)}">Map</a><a class="chip" href="${dir(k,"w")}">Walk</a><a class="chip" href="${dir(k,"r")}">Transit</a>
+      ${p.tel?`<a class="chip" href="tel:${p.tel}">Call</a>`:""}${p.web?`<a class="chip" href="${p.web}">Website</a>`:""}</div></div>`;
+  }).join("");
+}
+
+function renderInfo(){
+  $("#view-info").innerHTML = `<h2 class="section-title">Getting around</h2>
+  <div class="info"><h3>Fares</h3>TriMet covers MAX, bus and streetcar: <b>$2.80</b> for 2.5 hours or <b>$5.60</b> for a day pass. Tap your phone or contactless card on the green reader — no ticket needed.</div>
+  <div class="info"><h3>Hotel ↔ venue & Holy Rosary</h3>Walk: ~13 min to the Convention Center, ~15 min to Holy Rosary. Streetcar stop at SE Grand & E Burnside is 4 min from the hotel.</div>
+  <div class="info"><h3>Airport</h3>MAX Red Line between Convention Center station and PDX, ~30 min, trains every 15–30 min. Rideshare ~20 min.</div>
+  <div class="info"><h3>Rideshare days</h3>Tuesday afternoon (Grotto → St. George → hotel). Monday's cemetery trip is ~10 min by car or a ~25 min walk back.</div>
+  <div class="info"><h3>Phone numbers</h3>Holy Rosary office <a href="tel:5032353163">503-235-3163</a> (weekdays 9:30–12, 1–4)<br>The Grotto <a href="tel:5032547371">503-254-7371</a></div>
+  <div class="info"><h3>Time</h3>Portland is 2 hours behind Lincoln. Clocks fall back overnight Sat → Sun (Nov 1). Sunset is about 5:00 PM after the change.</div>
+  <div class="links" style="margin-top:4px"><a class="chip" href="https://trimet.org">TriMet trip planner</a></div>`;
+}
+
+function renderTodo(){
+  let done = {}; try{ done = JSON.parse(localStorage.getItem("pdx-check")||"{}"); }catch(e){}
+  $("#view-todo").innerHTML = `<h2 class="section-title">Before you leave</h2><ul class="check">` +
+    CHECK.map((c,i)=>`<li><label><input type="checkbox" data-c="${i}" ${done[i]?"checked":""}><span>${esc(c)}</span></label></li>`).join("") + `</ul>`;
+  $("#view-todo").onchange = e => {
+    const i = e.target.dataset.c; if(i===undefined) return;
+    done[i] = e.target.checked; try{ localStorage.setItem("pdx-check", JSON.stringify(done)); }catch(err){}
+  };
+}
+
+function setView(v){
+  document.querySelectorAll(".view").forEach(s=>s.classList.toggle("active", s.id==="view-"+v));
+  document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b.dataset.view===v));
+  document.body.classList.toggle("hide-days", v!=="day");
+  window.scrollTo(0,0);
+}
+
+function tick(){ $("#clock").textContent = "Portland " + pdxNow().label; }
+
+// Init: open today's day if within the trip, else the first day
+(function init(){
+  const today = pdxNow().date, i = DAYS.findIndex(d=>d.date===today);
+  current = i>=0 ? i : (today > DAYS[DAYS.length-1].date ? DAYS.length-1 : 0);
+  renderDays(); renderDay(true); renderPlaces(); renderInfo(); renderTodo(); tick();
+  $("#days").onclick = e => { const b=e.target.closest(".day-btn"); if(!b) return; current=+b.dataset.i; renderDays(); window.scrollTo(0,0); renderDay(true); };
+  $("#tabs").onclick = e => { const b=e.target.closest("button"); if(b) setView(b.dataset.view); };
+  setInterval(()=>{ tick(); if(DAYS[current].date===pdxNow().date) renderDay(); }, 60000);
+  const a = document.querySelector(".day-btn.active"); if(a) a.scrollIntoView({inline:"center",block:"nearest"});
+  if("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script>
+</body>
+</html>

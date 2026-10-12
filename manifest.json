@@ -1,0 +1,16 @@
+{
+  "name": "Portland Trip · CANVAS 2026",
+  "short_name": "Portland",
+  "description": "Day-by-day itinerary for the CANVAS 2026 trip to Portland, Oct 30 – Nov 5.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f4f1ea",
+  "theme_color": "#1f3a34",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
